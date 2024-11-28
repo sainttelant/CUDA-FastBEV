@@ -10,13 +10,16 @@ set(arch ${CMAKE_HOST_SYSTEM_PROCESSOR})
 
 find_package(CUDA REQUIRED)
 find_package(Protobuf REQUIRED)
-find_package(OpenCV)
+find_package(OpenCV REQUIRED)
 
-set(CMAKE_CXX_FLAGS_RELEASE "-std=c++14 -Wextra -Wall -Wno-missing-field-initializers -Wno-deprecated-declarations -O3 -DENABLE_TEXT_BACKEND_STB")
-set(CMAKE_CXX_FLAGS_DEBUG   "-std=c++14 -O0 -g -DENABLE_TEXT_BACKEND_STB")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(CUDA_NVCC_FLAGS_RELEASE "-Werror=all-warnings -Xcompiler -std=c++14,-Wextra,-Wall,-Wno-deprecated-declarations,-O3 -DENABLE_TEXT_BACKEND_STB")
-set(CUDA_NVCC_FLAGS_DEBUG   "-std=c++14 -O0 -g -DENABLE_TEXT_BACKEND_STB")
+set(CMAKE_CXX_FLAGS_RELEASE "-std=c++17 -Wextra -Wall -Wno-missing-field-initializers -Wno-deprecated-declarations -O3 -DENABLE_TEXT_BACKEND_STB")
+set(CMAKE_CXX_FLAGS_DEBUG   "-std=c++17 -O0 -g -DENABLE_TEXT_BACKEND_STB")
+
+set(CUDA_NVCC_FLAGS_RELEASE "-Werror=all-warnings -Xcompiler -std=c++17,-Wextra,-Wall,-Wno-deprecated-declarations,-O3 -DENABLE_TEXT_BACKEND_STB")
+set(CUDA_NVCC_FLAGS_DEBUG   "-std=c++17 -O0 -g -DENABLE_TEXT_BACKEND_STB")
 
 set(CUDA_NVCC_FLAGS ${CUDA_NVCC_FLAGS} 
   -gencode arch=compute_$ENV{CUDASM},code=compute_$ENV{CUDASM}
@@ -27,10 +30,11 @@ include_directories(
   $ENV{CUDA_Inc}
   $ENV{TensorRT_Inc}
   $ENV{Python_Inc}
-  # ${OpenCV_INCLUDE_DIRS}
   ../dependencies/stb
   ../dependencies/pybind11/include
   ../libraries/cuOSD/src
+  ./libraries/cuOSD/src
+  ./stb
   ../libraries/3DSparseConvolution/libspconv/include
   src/common
   src/
@@ -52,8 +56,8 @@ file(GLOB_RECURSE CORE_FILES
 )
 
 file(GLOB_RECURSE VISUALIZE_FILES 
-  ../libraries/cuOSD/src/*.cpp
-  ../libraries/cuOSD/src/*.cu
+  ./libraries/cuOSD/src/*.cpp
+  ./libraries/cuOSD/src/*.cu
   src/common/visualize.cu
 )
 

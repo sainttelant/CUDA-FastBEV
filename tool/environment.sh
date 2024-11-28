@@ -1,8 +1,8 @@
 #!/bin/bash
 
-export TensorRT_Lib=/home/Mandy/code/TensorRT-8.6.1.6/lib
-export TensorRT_Inc=/home/Mandy/code/TensorRT-8.6.1.6/include
-export TensorRT_Bin=/home/Mandy/code/TensorRT-8.6.1.6/bin
+export TensorRT_Lib=/usr/lib/aarch64-linux-gnu/
+export TensorRT_Inc=/usr/include/aarch64-linux-gnu/
+export TensorRT_Bin=/usr/src/tensorrt/bin/
 
 export CUDA_Lib=/usr/local/cuda/lib64
 export CUDA_Inc=/usr/local/cuda/include

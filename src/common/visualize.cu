@@ -22,7 +22,7 @@
  */
  
 #include <cuda_fp16.h>
-#include <cuosd.h>
+#include "cuosd.h"
 #include <math.h>
 #include <string.h>
 
