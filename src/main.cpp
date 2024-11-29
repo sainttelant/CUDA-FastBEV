@@ -81,6 +81,79 @@ std::shared_ptr<fastbev::Core> create_core(const std::string& model, const std::
   return fastbev::create_core(param);
 }
 
+cv::Mat draw_boxes(std::vector<fastbev::post::transbbox::BoundingBox> bboxes)
+{ 
+  // 每米10个像素
+  int bevsize_w = 800;
+  int bevsize_h = 600;
+  int show_range = 50;  // 显示范围  ,车位于图像中央 前后加起来100m
+
+  float scale = (bevsize_h * 0.5) / show_range;   // 车位于图像中心,根据50m对应500个像素计算每个像素代表多少米
+
+  // 创建一张白图
+  int center_ego_u = bevsize_w / 2;
+  int center_ego_v = bevsize_h / 2;
+  
+  // 创建一张size大小俯视图
+  // cv::Mat img(bevsize_h, bevsize_w, CV_8UC3, cv::Scalar(255,255,255));
+  cv::Mat img(bevsize_h, bevsize_w, CV_8UC3, cv::Scalar(0, 0, 0));
+  // 车体绘制车中心
+  cv::circle(img, cv::Point(center_ego_u, center_ego_v), 10, cv::Scalar(0, 0, 0), cv::FILLED);
+  
+  
+  // 绘制模拟的雷达圈
+  for(int i = 0; i < 16; i++)
+  {
+    int r_canvas = scale * i * 8;
+    cv::circle(img, cv::Point(center_ego_u, center_ego_v), r_canvas, cv::Scalar(0, 0, 255), 1, cv::FILLED);
+  }
+       
+  //                           up z    x front (yaw=0)
+  //                              ^   ^
+  //                              |  /
+  //                              | /
+  //  (yaw=0.5*pi) left y <------ 0     
+  
+  for(auto& obj : bboxes)
+  {
+
+    
+    int u = (bevsize_w / 2) - obj.position.y * scale;
+    int v = (bevsize_h / 2) - obj.position.x * scale;
+    
+    int w = obj.size.w * scale;
+    int h = obj.size.l * scale;
+
+    // (90 - θ)表示θ的余角(与图像x负方向的夹角),  这里 (90 - θ) % 180  表示 (90 - θ)的补角  + 360表示取正 
+    int rot = int(90 - obj.z_rotation / M_PI * 180 + 360) % 180;
+    // 创建一个旋转的矩形 旋转中心, 宽高 旋转角度(水平轴顺时针角度)
+    cv::RotatedRect box(cv::Point(u, v), cv::Size(w, h), rot);
+    
+    cv::Point2f vertex[4];
+    box.points(vertex);
+    for (int i = 0; i < 4; i++)
+      // vertex[(i + 1) % 4 循环连接下一个点
+      cv::line(img, vertex[i], vertex[(i + 1) % 4], cv::Scalar(0, 255, 255), 1, cv::LINE_AA);
+    
+    // std::string text = label_map[obj.id];
+    std::string text = std::to_string(obj.id);
+    cv::putText(img, text, (cv::Point(u , v + h / 2 + 5)), 0, 0.5, cv::Scalar(255, 255, 255), 1, 16);
+  }
+    cv::rotate(img, img, cv::ROTATE_90_CLOCKWISE);
+
+    cv::Point po(img.size().width /2, img.size().height /2);
+    cv::Point px(img.size().width /2, img.size().height /2 - 50);
+    cv::Point py(img.size().width /2 - 50, img.size().height /2);
+
+    cv::line(img, po, px, cv::Scalar(0, 0, 255), 2, 8);
+    cv::line(img, po, py, cv::Scalar(0, 255, 0), 2, 8);
+    cv::circle(img,po, 4, cv::Scalar(255, 0, 0), -1, 8);
+
+
+    return img;
+}
+
+
 
 void SaveBoxPred(std::vector<fastbev::post::transbbox::BoundingBox> boxes, std::string file_name)
 {
@@ -149,8 +222,30 @@ int main(int argc, char** argv){
     std::string save_file_name = Save_Dir + ".txt";
     SaveBoxPred(bboxes, save_file_name);
 
+    cv::namedWindow("result", cv::WINDOW_NORMAL);
+    cv::Mat results = draw_boxes(bboxes);
+
+    cv::imshow("result bev", results);
+    cv::imwrite("demo/result.jpg", results);
+    cv::waitKey(0);
+    std::cout << bboxes.size() << std::endl;
+/*     for(auto &bbox : bboxes)
+    { 
+      // id x y z w l h yaw vx vy score
+      std::cout << bbox.id << "  ";
+      std::cout << bbox.position.x << "  " << bbox.position.y << "  " << bbox.position.z << "  ";
+      std::cout << bbox.size.w << "  " << bbox.size.l << "  " << bbox.size.h << "  ";
+      std::cout << bbox.z_rotation << "  ";
+      std::cout << bbox.score << "  ";
+      std::cout << bbox.velocity.vx << "  " << bbox.velocity.vy << "  ";
+      std::cout << std::endl;
+     } */
+
+
+
     // destroy memory
     free_images(images);
+    cv::destroyAllWindows();
     checkRuntime(cudaStreamDestroy(stream));
     return 0;
 }
