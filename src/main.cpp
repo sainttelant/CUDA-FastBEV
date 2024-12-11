@@ -241,8 +241,6 @@ int main(int argc, char** argv){
       std::cout << std::endl;
      } */
 
-
-
     // destroy memory
     free_images(images);
     cv::destroyAllWindows();

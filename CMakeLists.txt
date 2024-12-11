@@ -43,7 +43,7 @@ include_directories(
 link_directories(
   $ENV{CUDA_Lib}
   $ENV{TensorRT_Lib}
-  ../libraries/3DSparseConvolution/libspconv/lib/${arch}
+  ${CMAKE_CURRENT_LIST_DIR}/libraries/3DSparseConvolution/libspconv/lib/${arch}
   build
   $ENV{Python_Lib}
 )
@@ -70,7 +70,7 @@ target_link_libraries(fastbev_core
   libcudart.so
   libcublasLt.so
   libnvinfer.so
-  libspconv.so
+  ${CMAKE_CURRENT_LIST_DIR}/libraries/3DSparseConvolution/libspconv/lib/aarch64_cuda11.4/libspconv.so
   ${Protobuf_LIBRARIES}
   libnvinfer_plugin.so
   ${OpenCV_LIBS}
@@ -87,7 +87,7 @@ cuda_add_executable(fastbev
 target_link_libraries(fastbev
   fastbev_core
   libnvinfer.so
-  libspconv.so
+  ${CMAKE_CURRENT_LIST_DIR}/libraries/3DSparseConvolution/libspconv/lib/aarch64_cuda11.4/libspconv.so
   ${Protobuf_LIBRARIES}
   libnvinfer_plugin.so
   ${OpenCV_LIBS}
@@ -104,7 +104,7 @@ if(${CMAKE_BUILD_PYTHON} STREQUAL "ON")
   target_link_libraries(pybev
     fastbev_core
     libnvinfer.so
-    libspconv.so
+    ${CMAKE_CURRENT_LIST_DIR}/libraries/3DSparseConvolution/libspconv/lib/aarch64_cuda11.4/libspconv.so
     ${Protobuf_LIBRARIES}
     libnvinfer_plugin.so
     $ENV{Python_Soname}
